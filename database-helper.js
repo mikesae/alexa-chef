@@ -1,6 +1,7 @@
 'use strict';
 module.change_code = 1;
 const DATA_TABLE_NAME = 'chefData';
+const _ = require('lodash');
 
 const credentials = {
     region: 'us-east-1',
@@ -25,7 +26,7 @@ function DatabaseHelper() {
                 return dynasty.create(DATA_TABLE_NAME, {
                     key_schema: {
                         hash: ['userId', 'string'],
-                        range: ['date', 'string']
+                        range: ['itemDate', 'string']
                     }
                 });
             });
@@ -34,21 +35,26 @@ function DatabaseHelper() {
     this.save = (userId, date, item) => {
         return dataTable.insert({
             userId: userId,
-            date: date,
+            itemDate: date,
             item: item
         }).then(response => console.log('Insert response: ' + JSON.stringify(response))
         ).catch(error => console.log(error));
     };
 
     this.load = (userId, date) => {
-        console.log('Looking for userId:' + userId + ' on ' + date);
-        return dataTable.find({hash: userId, range: date})
+        console.log('Looking for userId:' + userId + ', date: ' + date);
+        return dataTable.findAll(userId)
             .then(function (result) {
                 console.log('table found: ' + JSON.stringify(result));
-                return result;
+                if (result.length > 0) {
+                    return _.find(result, x => x.itemDate === date);
+                } else {
+                    return { item: 'nothing' };
+                }
             })
             .catch(function (error) {
                 console.log('load error: ' + JSON.stringify(error));
+                return { item: 'nothing' };
             });
     };
 }

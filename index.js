@@ -2,7 +2,6 @@
 module.change_code = 1;
 
 const Skill = require('alexa-app');
-const Chef_BAKER_SESSION_KEY = 'Chef_baker';
 const app = new Skill.app('Chef');
 const DatabaseHelper = require('./database-helper');
 const databaseHelper = new DatabaseHelper();
@@ -26,12 +25,17 @@ app.intent('addDinner', {
         '{add|put} {FOOD} {to|on} {DAY}s {-|dinner} menu',
         '{add|put} {FOOD} {to|on} {DATE}s {-|dinner} menu']
 }, (request, response) => {
-    let food = request.slot('FOOD');
     let day = request.slot('DAY');
+    let date = request.slot('DATE');
+
+    if (day) {
+        date = getDateFromDaySlot(day);
+    }
+    let food = request.slot('FOOD');
     let userId = request['data']['session']['user']['userId'];
 
-    databaseHelper.save(userId, day, food);
-    response.say('OK, I have added ' + food + ' to your dinner menu for ' + day).shouldEndSession(false);
+    databaseHelper.save(userId, date, food);
+    response.say('OK, I have added ' + food + ' to your dinner menu for ' + date).shouldEndSession(false);
 
 });
 
@@ -46,10 +50,10 @@ const dayMap = {
 };
 
 function getDateFromDaySlot(requestedDayName) {
-    var now = moment();
-    var currentDay = now.day();
-    var requestedDay;
-    var result;
+    let now = moment();
+    let currentDay = now.day();
+    let requestedDay;
+    let result;
 
     if (dayMap[requestedDayName] !== undefined) {
         requestedDay = dayMap[requestedDayName];
@@ -68,7 +72,7 @@ function getDateFromDaySlot(requestedDayName) {
                 break;
         }
     }
-    return result.toDate();
+    return result.format('LL');
 }
 
 app.intent('loadDinner', {
@@ -88,15 +92,8 @@ app.intent('loadDinner', {
     if (day) {
         date = getDateFromDaySlot(day);
     }
-
-    console.log('Looking up menu item for ' + date);
-
     databaseHelper.load(userId, date).then(result => {
-        let item = 'nothing';
-        if (result && result.data) {
-            item = JSON.parse(result.data.item);
-        }
-        response.say('OK ' + item + ' is on the menu for dinner on ' + day).shouldEndSession(true);
+        response.say('OK ' + result.item + ' is on the menu for dinner on ' + day).shouldEndSession(true);
     });
 });
 
