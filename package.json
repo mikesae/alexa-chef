@@ -1,0 +1,32 @@
+{
+  "name": "alexa-chef",
+  "version": "1.0.0",
+  "description": "Alexa chef skill.  Ask Alexa what's for dinner",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikesae/alexa-chef.git"
+  },
+  "keywords": [
+    "Alexa",
+    "ECMAScript6",
+    "javascript",
+    "dynamodb"
+  ],
+  "author": "Mike Saelens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mikesae/alexa-chef/issues"
+  },
+  "homepage": "https://github.com/mikesae/alexa-chef#readme",
+  "dependencies": {
+    "alexa-app": "^4.0.0",
+    "dynasty": "^0.2.7",
+    "moment": "^2.18.1",
+    "natural": "^0.5.1",
+    "underscore": "^1.8.3"
+  }
+}
