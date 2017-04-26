@@ -12,31 +12,40 @@ app.pre = () => {
 };
 
 app.launch(function (request, response) {
-    let prompt = 'Welcome to Chef! To add a menu item, say add followed by the item.  To review, say whats for dinner';
+    let prompt = 'Welcome to Chef! To add a menu item, say add followed by the item and the day.  To review, say whats for dinner';
     response.say(prompt).shouldEndSession(false);
 });
 
-app.intent('addDinner', {
-    slots: {
-        'FOOD': 'AMAZON.Food',
-        'DAY': 'AMAZON.DayOfWeek'
-    },
-    utterances: [
-        '{add|put} {FOOD} {to|on} {DAY}s {-|dinner} menu',
-        '{add|put} {FOOD} {to|on} {DATE}s {-|dinner} menu']
-}, (request, response) => {
+function getRequestDate(request) {
     let day = request.slot('DAY');
     let date = request.slot('DATE');
 
     if (day) {
         date = getDateFromDaySlot(day);
+    } else {
+        date = moment(date);
     }
+    return date;
+}
+
+app.intent('addDinner', {
+    slots: {
+        'FOOD': 'AMAZON.Food',
+        'DAY': 'AMAZON.DayOfWeek',
+        'DATE': 'AMAZON.Date'
+    },
+    utterances: [
+        '{add|put} {FOOD} {to|on} {DAY}s {-|dinner} menu',
+        '{add|put} {FOOD} {to|on} {DATE}s {-|dinner} menu']
+}, (request, response) => {
+    let date = getRequestDate(request);
     let food = request.slot('FOOD');
     let userId = request['data']['session']['user']['userId'];
 
+    // TODO: check for bad requests.
+
     databaseHelper.save(userId, date, food);
     response.say('OK, I have added ' + food + ' to your dinner menu for ' + date).shouldEndSession(false);
-
 });
 
 const dayMap = {
@@ -72,7 +81,7 @@ function getDateFromDaySlot(requestedDayName) {
                 break;
         }
     }
-    return result.format('LL');
+    return result;
 }
 
 app.intent('loadDinner', {
@@ -86,14 +95,12 @@ app.intent('loadDinner', {
     ]
 }, (request, response) => {
     let userId = request['data']['session']['user']['userId'];
-    let day = request.slot('DAY');
-    let date = request.slot('DATE');
+    let date = getRequestDate(request);
 
-    if (day) {
-        date = getDateFromDaySlot(day);
-    }
+    // TODO: check for bad requests.
+
     databaseHelper.load(userId, date).then(result => {
-        response.say('OK ' + result.item + ' is on the menu for dinner on ' + day).shouldEndSession(true);
+        response.say('OK ' + result + ' is on the menu for dinner on ' + date).shouldEndSession(true);
     });
 });
 

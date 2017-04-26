@@ -1,7 +1,8 @@
 'use strict';
 module.change_code = 1;
 const DATA_TABLE_NAME = 'chefData';
-const _ = require('lodash');
+const util = require('util');
+
 
 const credentials = {
     region: 'us-east-1',
@@ -25,36 +26,34 @@ function DatabaseHelper() {
             .catch(function (error) {
                 return dynasty.create(DATA_TABLE_NAME, {
                     key_schema: {
-                        hash: ['userId', 'string'],
-                        range: ['itemDate', 'string']
+                        hash: ['userId', 'string']
                     }
                 });
             });
     };
 
+    function makeKey(id, date) {
+        return util.format("%s | %s", id, date.format('LL'));
+    };
+
     this.save = (userId, date, item) => {
+        // combine user id and date to form the key
         return dataTable.insert({
-            userId: userId,
-            itemDate: date,
-            item: item
-        }).then(response => console.log('Insert response: ' + JSON.stringify(response))
+                userId: makeKey(userId, date),
+                item: item
+            }
         ).catch(error => console.log(error));
     };
 
     this.load = (userId, date) => {
-        console.log('Looking for userId:' + userId + ', date: ' + date);
-        return dataTable.findAll(userId)
+        return dataTable.find(makeKey(userId, date))
             .then(function (result) {
                 console.log('table found: ' + JSON.stringify(result));
-                if (result.length > 0) {
-                    return _.find(result, x => x.itemDate === date);
-                } else {
-                    return { item: 'nothing' };
-                }
+                return result ? result.item : 'nothing';
             })
             .catch(function (error) {
                 console.log('load error: ' + JSON.stringify(error));
-                return { item: 'nothing' };
+                return 'nothing';
             });
     };
 }
