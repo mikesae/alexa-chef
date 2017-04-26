@@ -13,8 +13,8 @@ const dynasty = require('dynasty')(credentials, 'http://localhost:4000');
 
 // const credentials = {
 //     region:'us-east-1',
-//     accessKeyId:'AKIAJB5CK4ANR4XCE7VA',
-//     secretAccessKey:'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'
+//     accessKeyId:'',
+//     secretAccessKey:''
 // };
 // const dynasty = require('dynasty')(credentials, null);
 
